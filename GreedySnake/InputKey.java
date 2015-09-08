@@ -15,9 +15,9 @@ public class InputKey implements Runnable {
 
 	@Override
 	public void run() {
-		do {
+		while (key.value.contains("q")) {
 			key.value = scan.next();
-		} while (key.value.contains("q"));
+		}
 		end = true;
 	}
 }

@@ -14,8 +14,8 @@ public class GameRunner {
 	}
 	
 	private static void execute(Keyboard key, InputKey input, PanelBoard panel) {
-		Thread inputThread = new Thread(input);
-		Thread panelThread = new Thread(panel);
+		Thread inputThread = new Thread(input, "inputThread");
+		Thread panelThread = new Thread(panel, "panelThread");
 		inputThread.start();
 		panelThread.start();
 	}
