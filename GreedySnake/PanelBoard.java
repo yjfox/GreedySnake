@@ -143,9 +143,10 @@ public class PanelBoard implements Runnable {
 		case 'L':
 			if (snake.col == 0) {
 				headCol = N - 1;
+			} else {
+				headRow = snake.row;
+				headCol = snake.col - 1;
 			}
-			headRow = snake.row;
-			headCol = snake.col - 1;
 			break;
 		case 'R':
 			if (snake.col == N - 1) {
