@@ -10,8 +10,8 @@ public class PanelBoard implements Runnable {
 		char direction; // 'L' - left, 'R' - Right, 'U' - up, 'D' - down
 		int row, col;
 
-		public GraphNode(int m, int n, char direction, boolean isSnake) {
-			this.isSnake = isSnake;
+		public GraphNode(int m, int n, char direction) {
+			this.isSnake = true;
 			this.isHead = false;
 			this.isBean = false;
 			this.direction = direction;
@@ -37,7 +37,7 @@ public class PanelBoard implements Runnable {
 		public BeanSetter(GraphNode[][] graph) {
 			this.graph = graph;
 			rand = new Random();
-			flag =true;
+			flag = true;
 		}
 
 		@Override
@@ -58,7 +58,7 @@ public class PanelBoard implements Runnable {
 						}
 					} while (graph[row][col].isSnake);
 					try {
-						this.wait(1000 * graph.length / 2);
+						this.wait(1000 * graph.length);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -68,7 +68,7 @@ public class PanelBoard implements Runnable {
 				}
 			}
 		}
-		
+
 		void setFlag(boolean value) {
 			flag = value;
 		}
@@ -89,8 +89,8 @@ public class PanelBoard implements Runnable {
 	}
 
 	private void initialSnake() {
-		graph[0][1] = new GraphNode(0, 1, 'R', true);
-		graph[0][0] = new GraphNode(0, 0, 'R', true);
+		graph[0][1] = new GraphNode(0, 1, 'R');
+		graph[0][0] = new GraphNode(0, 0, 'R');
 		head = graph[0][1];
 		head.isHead = true;
 		tail = graph[0][0];
@@ -99,11 +99,11 @@ public class PanelBoard implements Runnable {
 
 	@Override
 	public void run() {
-		char direction = 'R';
 		Thread threadBean = new Thread(beanSetter, "threadBean");
 		threadBean.start();
 		while (!key.value.contains("q")) {
 			printPanel();
+			setHeadDirection(key.value);
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
@@ -111,76 +111,112 @@ public class PanelBoard implements Runnable {
 				e.printStackTrace();
 			}
 			synchronized (beanSetter) {
-				moveSnake(direction, beanSetter);
+				moveSnake(beanSetter);
 			}
 		}
 		beanSetter.setFlag(false);
 	}
 
-	private void moveSnake(char direction, BeanSetter beanSetter) {
-		int headRow = 0;
-		int headCol = 0;
-		switch (head.direction) {
-		case 'L':
-			headRow = head.row;
-			headCol = head.col - 1;
-			break;
-		case 'R':
-			if (head.col == N - 1) {
-				headCol = 0;
-			} else {
-				headRow = head.row;
-				headCol = head.col + 1;
-			}
-			break;
-		case 'U':
-			headRow = head.row + 1;
-			headCol = head.col;
-			break;
-		case 'D':
-			headRow = head.row - 1;
-			headCol = head.col;
-			break;
-		default:
-			break;
-		}
-		if (graph[headRow][headCol] != null && graph[headRow][headCol].isSnake) {
+	private void moveSnake(BeanSetter beanSetter) {
+		GraphNode newHead = getNextNode(head);
+		if (newHead == tail) {
 			System.out.println("Game Over!");
 			System.exit(0);
 		}
-		if (graph[headRow][headCol] == null) {
-			graph[headRow][headCol] = new GraphNode(headRow, headCol,
-					direction, true);
-		}
 		head.isHead = false;
-		head = graph[headRow][headCol];
-		head.isSnake = true;
+		head = newHead;
 		head.isHead = true;
-		head.direction = direction;
 		if (head.isBean) {
 			beanSetter.notify();
 			return;
 		}
-		char tailDirect = tail.direction;
-		int tailRow = 0, tailCol = 0;
+		GraphNode newTail = getNextNode(tail);
 		tail.isSnake = false;
 		tail.direction = ' ';
-		switch (tailDirect) {
+		tail = newTail;
+	}
+
+	private GraphNode getNextNode(GraphNode snake) {
+		int headRow = 0;
+		int headCol = 0;
+		switch (snake.direction) {
 		case 'L':
-			if (tail.col == 0) {
-				tailCol = N - 1;
-			} else {
-				tailCol = tail.col - 1;
+			if (snake.col == 0) {
+				headCol = N - 1;
 			}
+			headRow = snake.row;
+			headCol = snake.col - 1;
 			break;
 		case 'R':
-			if (tail.col == M - 1) {
-				tailCol = 0;
+			if (snake.col == N - 1) {
+				headCol = 0;
 			} else {
-				tailCol = tail.col + 1;
+				headRow = snake.row;
+				headCol = snake.col + 1;
+			}
+			break;
+		case 'U':
+			if (snake.row == 0) {
+				headRow = M - 1;
+			} else {
+				headRow = snake.row - 1;
+				headCol = snake.col;
+			}
+			break;
+		case 'D':
+			if (snake.row == M - 1) {
+				headRow = 0;
+			} else {
+				headRow = snake.row + 1;
+				headCol = snake.col;
+			}
+			break;
+		default:
+			break;
+		}
+		if (graph[headRow][headCol] == null) {
+			graph[headRow][headCol] = new GraphNode(headRow, headCol,
+					snake.direction);
+		} else if (!graph[headRow][headCol].isSnake) {
+			graph[headRow][headCol].isSnake = true;
+			graph[headRow][headCol].direction = snake.direction;
+		}
+		return graph[headRow][headCol];
+	}
+
+	private void setHeadDirection(String dir) {
+		if (dir.contains("L") || dir.contains("l")) {
+			if (head.direction == 'R' || head.direction == 'L') {
+				return;
+			} else {
+				head.direction = 'L';
+				return;
 			}
 		}
-		tail = graph[tailRow][tailCol];
+		if (dir.contains("R") || dir.contains("r")) {
+			if (head.direction == 'R' || head.direction == 'L') {
+				return;
+			} else {
+				head.direction = 'R';
+				return;
+			}
+		}
+		if (dir.contains("U") || dir.contains("u")) {
+			if (head.direction == 'U' || head.direction == 'D') {
+				return;
+			} else {
+				head.direction = 'U';
+				return;
+			}
+		}
+		if (dir.contains("D") || dir.contains("d")) {
+			if (head.direction == 'U' || head.direction == 'D') {
+				return;
+			} else {
+				head.direction = 'D';
+				return;
+			}
+		}
 	}
 
 	private void printPanel() {
