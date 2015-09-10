@@ -119,13 +119,15 @@ public class PanelBoard implements Runnable {
 
 	private void moveSnake(BeanSetter beanSetter) {
 		GraphNode newHead = getNextNode(head);
-		if (newHead == tail) {
-			System.out.println("Game Over!");
-			System.exit(0);
+		if (newHead.isSnake) {
+			System.out.println("Game Over");
+			System.exit(1);
 		}
+		newHead.isSnake = true;
+		newHead.direction = head.direction;
+		newHead.isHead = true;
 		head.isHead = false;
 		head = newHead;
-		head.isHead = true;
 		if (head.isBean) {
 			beanSetter.notify();
 			return;
@@ -137,8 +139,8 @@ public class PanelBoard implements Runnable {
 	}
 
 	private GraphNode getNextNode(GraphNode snake) {
-		int headRow = 0;
-		int headCol = 0;
+		int headRow = snake.row;
+		int headCol = snake.col;
 		switch (snake.direction) {
 		case 'L':
 			if (snake.col == 0) {
@@ -176,12 +178,8 @@ public class PanelBoard implements Runnable {
 			break;
 		}
 		if (graph[headRow][headCol] == null) {
-			graph[headRow][headCol] = new GraphNode(headRow, headCol,
-					snake.direction);
-		} else if (!graph[headRow][headCol].isSnake) {
-			graph[headRow][headCol].isSnake = true;
-			graph[headRow][headCol].direction = snake.direction;
-		}
+			graph[headRow][headCol] = new GraphNode(headRow, headCol);
+		} 
 		return graph[headRow][headCol];
 	}
 
