@@ -3,6 +3,10 @@ package GreedySnake;
 import java.util.Random;
 
 public class PanelBoard implements Runnable {
+
+	private final String QUIT="q";
+	private final String AUTO="auto";
+
 	static class GraphNode {
 		boolean isSnake;
 		boolean isHead;
@@ -27,11 +31,22 @@ public class PanelBoard implements Runnable {
 			this.row = m;
 			this.col = n;
 		}
-	}
 
+		public GraphNode() {
+			this.isSnake = false;
+                        this.isHead = false;
+                        this.isBean = false;
+                        this.direction = ' ';
+                        this.row = -1;
+                        this.col = -1;
+		}
+	}
+	
+	//a thread that setting bean randomly
 	static class BeanSetter implements Runnable {
 		GraphNode[][] graph;
 		Random rand;
+	        private static final GraphNode bean = new GraphNode();
 		volatile boolean flag;
 
 		public BeanSetter(GraphNode[][] graph) {
@@ -46,13 +61,15 @@ public class PanelBoard implements Runnable {
 			while (flag) {
 				synchronized (this) {
 					do {
-						row = 0;
+						row = rand.nextInt(graph.length);
 						col = rand.nextInt(graph[0].length);
 						if (graph[row][col] == null) {
 							graph[row][col] = new GraphNode(row, col);
 						}
 						if (!graph[row][col].isSnake) {
 							graph[row][col].isBean = true;
+							bean.row = row;
+							bean.col = col;
 						} else {
 							continue;
 						}
@@ -99,11 +116,19 @@ public class PanelBoard implements Runnable {
 
 	@Override
 	public void run() {
+		boolean autoRun = false;
 		Thread threadBean = new Thread(beanSetter, "threadBean");
 		threadBean.start();
-		while (!key.value.contains("q")) {
+		while (key.value.length() < 1 || !key.value.contains(QUIT)) {
 			printPanel();
-			setHeadDirection(key.value);
+                        if (!autoRun && key.value.length() >= 4 && key.value.contains(AUTO)) {
+                                autoRun = true;
+                        }
+                        if (autoRun) {
+                                setHeadDirection(autoDirection(BeanSetter.bean));
+                        } else {
+				setHeadDirection(key.value);
+			}
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
@@ -129,7 +154,7 @@ public class PanelBoard implements Runnable {
 		head.isHead = false;
 		head = newHead;
 		if (head.isBean) {
-			beanSetter.notify();
+			beanSetter.notify();	
 			return;
 		}
 		GraphNode newTail = getNextNode(tail);
@@ -215,6 +240,18 @@ public class PanelBoard implements Runnable {
 				head.direction = 'D';
 				return;
 			}
+		}
+	}
+	
+	private String autoDirection(GraphNode bean) {
+		if (head.row < bean.row) {
+			return "d";
+		} else if (head.row > bean.row) {
+			return "u";
+		} else if (head.col < bean.col) {
+			return "r";
+		} else {
+			return "l";
 		}
 	}
 

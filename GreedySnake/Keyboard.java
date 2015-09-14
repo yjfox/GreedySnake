@@ -2,7 +2,7 @@ package GreedySnake;
 
 public class Keyboard {
 	String value;
-	private static Keyboard instance = null;
+	private static volatile Keyboard instance = null;
 
 	private Keyboard() {
 		this.value = new String();
