@@ -1,5 +1,6 @@
 # GreedySnake
-prototype of GreedySnake game in CLI
+prototype of GreedySnake game in CLI, do it for fun
 
-1. just do it for fun, some classes are still "to do"
-2. MainFrame is useless, leave it there for furture use
+* MultiThreading - PanelBoard, input, BeanSetter three threads
+* Auto playing function, find and eat Bean automatically, algorithm needs improvement
+* MainFrame is useless, leave it there for furture use
