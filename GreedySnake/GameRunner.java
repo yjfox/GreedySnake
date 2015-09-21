@@ -10,10 +10,10 @@ public class GameRunner {
 		Keyboard key = Keyboard.getInstance();
 		input = new InputKey(key);
 		panel = new PanelBoard(key, M, N);
-		execute(key, input, panel);
+		execute(input, panel);
 	}
 	
-	private static void execute(Keyboard key, InputKey input, PanelBoard panel) {
+	private static void execute(InputKey input, PanelBoard panel) {
 		Thread inputThread = new Thread(input, "inputThread");
 		Thread panelThread = new Thread(panel, "panelThread");
 		inputThread.start();

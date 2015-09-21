@@ -4,8 +4,8 @@ import java.util.Random;
 
 public class PanelBoard implements Runnable {
 
-	private final String QUIT="q";
-	private final String AUTO="auto";
+	private final String QUIT = "q";
+	private final String AUTO = "auto";
 
 	static class GraphNode {
 		boolean isSnake;
@@ -34,19 +34,19 @@ public class PanelBoard implements Runnable {
 
 		public GraphNode() {
 			this.isSnake = false;
-                        this.isHead = false;
-                        this.isBean = false;
-                        this.direction = ' ';
-                        this.row = -1;
-                        this.col = -1;
+			this.isHead = false;
+			this.isBean = false;
+			this.direction = ' ';
+			this.row = -1;
+			this.col = -1;
 		}
 	}
-	
-	//a thread that setting bean randomly
+
+	// a thread that setting bean randomly
 	static class BeanSetter implements Runnable {
 		GraphNode[][] graph;
 		Random rand;
-	        private static final GraphNode bean = new GraphNode();
+		private static final GraphNode bean = new GraphNode();
 		volatile boolean flag;
 
 		public BeanSetter(GraphNode[][] graph) {
@@ -121,12 +121,12 @@ public class PanelBoard implements Runnable {
 		threadBean.start();
 		while (key.value.length() < 1 || !key.value.contains(QUIT)) {
 			printPanel();
-                        if (!autoRun && key.value.length() >= 4 && key.value.contains(AUTO)) {
-                                autoRun = true;
-                        }
-                        if (autoRun) {
-                                setHeadDirection(autoDirection(BeanSetter.bean));
-                        } else {
+			if (!autoRun && key.value.length() >= 4 && key.value.contains(AUTO)) {
+				autoRun = true;
+			}
+			if (autoRun) {
+				setHeadDirection(autoDirection(BeanSetter.bean));
+			} else {
 				setHeadDirection(key.value);
 			}
 			try {
@@ -154,7 +154,7 @@ public class PanelBoard implements Runnable {
 		head.isHead = false;
 		head = newHead;
 		if (head.isBean) {
-			beanSetter.notify();	
+			beanSetter.notify();
 			return;
 		}
 		GraphNode newTail = getNextNode(tail);
@@ -204,7 +204,7 @@ public class PanelBoard implements Runnable {
 		}
 		if (graph[headRow][headCol] == null) {
 			graph[headRow][headCol] = new GraphNode(headRow, headCol);
-		} 
+		}
 		return graph[headRow][headCol];
 	}
 
@@ -242,13 +242,34 @@ public class PanelBoard implements Runnable {
 			}
 		}
 	}
-	
+
 	private String autoDirection(GraphNode bean) {
-		if (head.row < bean.row) {
+		int row = head.row, col = head.col;
+		if (row < bean.row
+				&& (graph[(row + 1) % M][col] == null || (graph[(row + 1) % M][col] != null && graph[(row + 1)
+						% M][col].isSnake != true))) {
 			return "d";
-		} else if (head.row > bean.row) {
+		}
+		if (row > bean.row
+				&& (graph[(row - 1) % M][col] == null || (graph[(row - 1) % M][col] != null && graph[(row - 1)
+						% M][col].isSnake != true))) {
 			return "u";
-		} else if (head.col < bean.col) {
+		}
+		if (col < bean.col
+				&& (graph[row][(col + 1) % N] == null || (graph[row][(col + 1)
+						% N] != null && graph[row][(col + 1) % N].isSnake != true))) {
+			return "r";
+		}
+		if (graph[row][(col - 1) % N] == null
+				|| (graph[row][(col - 1) % N] != null && graph[row][(col - 1)
+						% N].isSnake != true)) {
+			return "l";
+		}
+		if (graph[(row + 1) % M][col] == null || graph[(row + 1) % M][col].isSnake != true) {
+			return "d";
+		} else if (graph[(row - 1) % M][col] == null || graph[(row - 1) % M][col].isSnake != true) {
+			return "u";
+		} else if (graph[row][(col + 1) % N] == null || graph[row][(col + 1) % N].isSnake != true) {
 			return "r";
 		} else {
 			return "l";
